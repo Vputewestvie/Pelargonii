@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторская коллекция пеларгоний</title>
 
+    <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
+    <!-- Tailwind + Alpine -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -26,14 +28,21 @@
         body { background-color: #FAF9F5; color: #1C352D; font-family: 'Inter', sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .zoom-transition { transition: all 0.3s ease; }
-        /* Простой спиннер */
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #B48B5C; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #B48B5C;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body x-data="catalogApp()" x-init="init()" class="relative" @keydown.escape="closeModal(); comparisonOpen = false; isFullScreen = false">
 
-    <!-- ШАПКА (без изменений) -->
+    <!-- ШАПКА -->
     <header class="border-b border-botanical-sage/20 py-8 px-4 bg-white/50 backdrop-blur-md sticky top-0 z-30">
         <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-left">
@@ -46,6 +55,7 @@
         </div>
     </header>
 
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <main class="max-w-[1600px] mx-auto px-4 py-8">
         <!-- СОСТОЯНИЕ ЗАГРУЗКИ / ОШИБКИ -->
         <div x-show="loading" class="text-center py-20">
@@ -57,7 +67,7 @@
             <p class="text-sm mt-2">Попробуйте обновить страницу или зайдите позже.</p>
         </div>
 
-        <!-- ФИЛЬТРЫ (показываем, только если данные загружены) -->
+        <!-- ФИЛЬТРЫ (показываем, только если данные загружены и нет ошибки) -->
         <div x-show="!loading && !error" class="bg-white rounded-3xl p-6 shadow-sm border border-botanical-sage/10 mb-8">
             <div class="flex flex-col lg:flex-row gap-6 justify-between items-center">
                 <div class="flex flex-wrap gap-2">
@@ -69,7 +79,6 @@
                     </template>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 items-center w-full lg:w-auto">
-                    <!-- Поиск с debounce (используем x-model.debounce) -->
                     <input type="text" x-model.debounce="searchQuery" placeholder="Поиск сорта..." class="w-full sm:w-64 bg-botanical-cream rounded-full px-5 py-2.5 text-sm border border-botanical-sage/20 focus:outline-none focus:border-botanical-gold">
                     <label class="flex items-center gap-2 cursor-pointer whitespace-nowrap">
                         <input type="checkbox" x-model="onlyInStock" class="rounded text-botanical-deep focus:ring-botanical-gold w-5 h-5">
@@ -79,11 +88,11 @@
             </div>
         </div>
 
-        <!-- КАРТОЧКИ -->
+        <!-- КАРТОЧКИ В КАТАЛОГЕ -->
         <div x-show="!loading && !error" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-24">
             <template x-for="plant in filteredPlants()" :key="plant.id">
                 <div class="bg-white rounded-3xl border border-botanical-sage/10 shadow-sm overflow-hidden flex flex-col hover:shadow-xl transition duration-300">
-                    <!-- ... карточка без изменений ... -->
+
                     <div class="relative aspect-[4/3] bg-botanical-cream overflow-hidden cursor-pointer" @click="openModal(plant)">
                         <img :src="plant.media[0]" loading="lazy" class="w-full h-full object-contain hover:scale-105 transition duration-500">
                         <div class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] uppercase font-semibold text-botanical-gold shadow-sm" x-text="plant.group"></div>
@@ -91,6 +100,7 @@
                             <span :class="plant.stock > 0 ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'" class="px-3 py-1 rounded-full text-[10px] uppercase font-bold" x-text="plant.stock > 0 ? 'В наличии' : 'Ожидается'"></span>
                         </div>
                     </div>
+
                     <div class="p-6 flex flex-col flex-grow">
                         <h3 class="font-serif text-xl font-bold leading-tight text-botanical-deep cursor-pointer" @click="openModal(plant)">
                             <span x-text="plant.number ? '№' + plant.number + ' ' : ''"></span><span x-text="plant.title"></span>
@@ -116,38 +126,160 @@
         </div>
     </main>
 
-    <!-- МОДАЛКА (без изменений) -->
-    <!-- ... (оставляем прежний код модалки, он уже содержит @keydown.escape глобально) -->
+    <!-- МОДАЛКА ПОДРОБНОГО ПРОСМОТРА -->
+    <div x-show="modalOpen" class="fixed inset-0 z-40 overflow-y-auto" style="display: none;" x-transition>
+        <div class="flex items-center justify-center min-h-screen px-4 py-6">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="closeModal()"></div>
 
-    <!-- ПОЛНОЭКРАННЫЙ ПРОСМОТР -->
-    <!-- ... (без изменений) -->
+            <div class="bg-white rounded-3xl max-w-5xl w-full mx-auto relative z-50 overflow-hidden shadow-2xl flex flex-col md:flex-row">
+                <button @click="closeModal()" class="absolute top-4 right-4 bg-white/90 hover:bg-gray-100 p-2.5 rounded-full shadow-md z-[55] text-botanical-deep font-bold">✕</button>
+
+                <div class="md:w-1/2 bg-botanical-cream p-6 flex flex-col justify-center border-r border-gray-100">
+                    <div class="relative aspect-square bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-zoom-in group"
+                         @click="openFullScreen()">
+                        <template x-for="(photo, index) in currentPlant.media" :key="index">
+                            <img :src="photo" x-show="activePhotoIndex === index" class="w-full h-full object-contain pointer-events-none zoom-transition">
+                        </template>
+                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center pointer-events-none">
+                            <span class="bg-black/60 text-white text-sm px-4 py-2 rounded-full backdrop-blur-md shadow-lg">🔍 Рассмотреть</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-4 overflow-x-auto hide-scrollbar pb-2" x-show="currentPlant.media && currentPlant.media.length > 1">
+                        <template x-for="(photo, index) in currentPlant.media" :key="index">
+                            <img :src="photo" @click="activePhotoIndex = index" class="w-16 h-16 object-cover rounded-lg cursor-pointer border-2 transition" :class="activePhotoIndex === index ? 'border-botanical-gold' : 'border-transparent opacity-60'">
+                        </template>
+                    </div>
+                </div>
+
+                <div class="md:w-1/2 p-8 lg:p-10 flex flex-col h-full max-h-[85vh] overflow-y-auto z-10 relative">
+                    <span class="text-xs uppercase tracking-wider text-botanical-gold font-semibold" x-text="capitalize(currentPlant.group || '')"></span>
+                    <h2 class="font-serif text-3xl font-bold text-botanical-deep mt-2 leading-tight" x-text="(currentPlant.number ? '№' + currentPlant.number + ' ' : '') + currentPlant.title"></h2>
+                    <p class="text-sm text-botanical-sage italic mt-1" x-text="currentPlant.latinTitle"></p>
+
+                    <div class="mt-6 space-y-3">
+                        <template x-for="bullet in parseBullets(currentPlant.description)" :key="bullet">
+                            <div class="flex items-start gap-3 text-sm text-botanical-deep">
+                                <span class="text-botanical-gold text-lg leading-none mt-0.5">•</span>
+                                <span x-text="bullet"></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="mt-8 bg-botanical-cream p-5 rounded-2xl border border-botanical-sage/10">
+                        <h4 class="text-xs uppercase tracking-wider font-bold text-botanical-gold mb-4">🌿 Памятка по уходу</h4>
+                        <div class="text-sm space-y-3 text-botanical-deep">
+                            <div x-show="getCare(currentPlant.group).light"><span class="font-semibold block text-botanical-sage text-xs">ОСВЕЩЕНИЕ</span> <span x-text="getCare(currentPlant.group).light"></span></div>
+                            <div x-show="getCare(currentPlant.group).water"><span class="font-semibold block text-botanical-sage text-xs mt-2">ПОЛИВ</span> <span x-text="getCare(currentPlant.group).water"></span></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 pt-6 border-t border-botanical-sage/10 flex justify-between items-center gap-4">
+                        <span class="text-3xl font-bold text-botanical-deep" x-text="currentPlant.price + ' ₽'"></span>
+                        <button @click="toggleSelection(currentPlant)" :class="isSelected(currentPlant) ? 'bg-botanical-gold text-white' : 'bg-botanical-deep text-white'" class="px-8 py-4 rounded-xl font-bold transition shadow-lg hover:shadow-xl hover:-translate-y-1" x-text="isSelected(currentPlant) ? 'В списке' : 'Выбрать'"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОЛНОЭКРАННЫЙ ЗУМ -->
+    <div x-show="isFullScreen" style="display: none;" class="fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <button @click="isFullScreen = false" class="absolute top-6 right-6 text-white bg-black/50 hover:bg-botanical-gold rounded-full w-12 h-12 flex items-center justify-center font-bold text-2xl z-[110] transition-colors duration-200">✕</button>
+
+        <div class="w-full h-full p-4 flex justify-center items-center relative overflow-hidden" @click="isFullScreen = false">
+            <template x-for="(photo, index) in currentPlant.media" :key="index">
+                <img :src="photo" x-show="activePhotoIndex === index" @click.stop class="w-auto max-w-full h-auto max-h-[95vh] object-contain select-none cursor-default drop-shadow-2xl">
+            </template>
+        </div>
+
+        <button x-show="currentPlant.media && currentPlant.media.length > 1" @click.stop="prevPhoto()" class="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-botanical-gold w-12 h-16 flex items-center justify-center text-3xl font-bold rounded-xl transition-colors duration-200 z-[110]">&#10094;</button>
+        <button x-show="currentPlant.media && currentPlant.media.length > 1" @click.stop="nextPhoto()" class="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-botanical-gold w-12 h-16 flex items-center justify-center text-3xl font-bold rounded-xl transition-colors duration-200 z-[110]">&#10095;</button>
+
+        <div x-show="currentPlant.media && currentPlant.media.length > 1" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm font-semibold tracking-wider">
+            Фото <span x-text="activePhotoIndex + 1"></span> из <span x-text="currentPlant.media.length"></span>
+        </div>
+    </div>
 
     <!-- БАР СРАВНЕНИЯ -->
-    <!-- ... (без изменений) -->
+    <div x-show="comparisonList.length > 0" class="fixed bottom-28 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-botanical-gold/30 px-6 py-4 flex items-center gap-6 z-40" style="display: none;" x-transition>
+        <span class="text-sm font-bold text-botanical-deep flex items-center gap-2">⚖️ К сравнению: <span x-text="comparisonList.length"></span></span>
+        <button @click="comparisonOpen = true" class="bg-botanical-gold text-white px-5 py-2.5 rounded-xl text-xs font-bold transition">Сравнить</button>
+        <button @click="comparisonList = []" class="text-xs text-gray-400 hover:text-red-500 font-bold uppercase tracking-wider">Очистить</button>
+    </div>
 
-    <!-- КОРЗИНА АВИТО -->
-    <!-- ... (без изменений) -->
+    <!-- МОДАЛКА СРАВНЕНИЯ -->
+    <div x-show="comparisonOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="comparisonOpen = false"></div>
+            <div class="bg-white rounded-3xl p-8 max-w-5xl w-full relative z-10 overflow-x-auto shadow-2xl">
+                <button @click="comparisonOpen = false" class="absolute top-5 right-5 bg-gray-100 p-2 rounded-full font-bold">✕</button>
+                <h3 class="font-serif text-3xl font-bold mb-8 text-botanical-deep">Сравнение сортов</h3>
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr class="border-b-2 border-gray-100">
+                            <th class="py-4 font-bold text-gray-400 text-xs uppercase w-1/4">Параметр</th>
+                            <template x-for="item in comparisonList" :key="item.id">
+                                <th class="py-4 px-4 font-serif text-xl text-botanical-deep font-bold" x-text="item.title"></th>
+                            </template>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-botanical-deep">
+                        <tr class="border-b border-gray-100">
+                            <td class="py-4 font-bold text-gray-400 text-xs uppercase">Фото</td>
+                            <template x-for="item in comparisonList" :key="item.id">
+                                <td class="py-4 px-4"><img :src="item.media[0]" class="w-32 h-32 object-cover rounded-2xl shadow-sm"></td>
+                            </template>
+                        </tr>
+                        <tr class="border-b border-gray-100">
+                            <td class="py-4 font-bold text-gray-400 text-xs uppercase">Группа</td>
+                            <template x-for="item in comparisonList" :key="item.id">
+                                <td class="py-4 px-4 font-bold text-botanical-gold uppercase tracking-wider" x-text="item.group"></td>
+                            </template>
+                        </tr>
+                        <tr class="border-b border-gray-100">
+                            <td class="py-4 font-bold text-gray-400 text-xs uppercase">Размер цветка</td>
+                            <template x-for="item in comparisonList" :key="item.id">
+                                <td class="py-4 px-4 font-semibold" x-text="item.flowerSize || '—'"></td>
+                            </template>
+                        </tr>
+                        <tr class="border-b border-gray-100">
+                            <td class="py-4 font-bold text-gray-400 text-xs uppercase">Цена</td>
+                            <template x-for="item in comparisonList" :key="item.id">
+                                <td class="py-4 px-4 font-bold text-xl" x-text="item.price + ' ₽'"></td>
+                            </template>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- КОРЗИНА ДЛЯ АВИТО -->
+    <div x-show="selectionList.length > 0" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-botanical-deep text-white rounded-full shadow-2xl px-8 py-4 flex items-center gap-8 z-40 max-w-lg w-11/12" style="display: none;" x-transition>
+        <div class="text-left flex-1">
+            <span class="text-xs uppercase tracking-wider block opacity-75">Выбрано сортов: <span x-text="selectionList.length"></span></span>
+            <span class="text-lg font-bold" x-text="calculateTotal() + ' ₽'"></span>
+        </div>
+        <button @click="copyForAvito()" class="bg-botanical-gold text-white hover:bg-opacity-90 px-6 py-3 rounded-full text-xs font-bold tracking-wider uppercase transition shadow-lg hover:-translate-y-0.5">В Авито</button>
+    </div>
 
     <!-- СКРИПТ -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('catalogApp', () => ({
-                // Данные
                 plants: [],
                 groups: ['all'],
                 activeGroup: 'all',
                 searchQuery: '',
                 onlyInStock: false,
 
-                // Состояния
                 loading: true,
                 error: false,
 
-                // Выбранное и сравнение (восстанавливаем из localStorage)
                 selectionList: [],
                 comparisonList: [],
 
-                // Модалка
                 modalOpen: false,
                 currentPlant: { media: [], title: '', group: '' },
                 activePhotoIndex: 0,
@@ -156,7 +288,6 @@
 
                 // ---- ИНИЦИАЛИЗАЦИЯ ----
                 async init() {
-                    // Восстанавливаем сохранённые списки
                     this.restoreFromStorage();
 
                     try {
@@ -202,13 +333,13 @@
                         this.loading = false;
                     }
 
-                    // После загрузки синхронизируем выбранные элементы (вдруг какой-то сорт уже не существует)
+                    // Синхронизируем сохранённые списки (если какие-то сорта удалены)
                     this.selectionList = this.selectionList.filter(p => this.plants.some(pl => pl.id === p.id));
                     this.comparisonList = this.comparisonList.filter(p => this.plants.some(pl => pl.id === p.id));
                     this.saveToStorage();
                 },
 
-                // ---- РАБОТА С ХРАНИЛИЩЕМ ----
+                // ---- ХРАНИЛИЩЕ ----
                 restoreFromStorage() {
                     try {
                         const sel = JSON.parse(localStorage.getItem('pelargonium_selection'));
@@ -222,7 +353,7 @@
                     localStorage.setItem('pelargonium_comparison', JSON.stringify(this.comparisonList));
                 },
 
-                // ---- ФИЛЬТРАЦИЯ ----
+                // ---- ФИЛЬТРЫ ----
                 filteredPlants() {
                     return this.plants.filter(p => {
                         const mGroup = this.activeGroup === 'all' || p.group === this.activeGroup;
@@ -232,7 +363,7 @@
                     });
                 },
 
-                // ---- ВЫБОР И СРАВНЕНИЕ (с автосохранением) ----
+                // ---- ВЫБОР И СРАВНЕНИЕ ----
                 toggleSelection(p) {
                     const idx = this.selectionList.findIndex(item => item.id === p.id);
                     if (idx > -1) this.selectionList.splice(idx, 1);
@@ -284,7 +415,7 @@
                 parseBullets(desc) {
                     if (!desc) return [];
                     const items = desc.split('•').map(b => b.trim()).filter(b => b);
-                    return items.length ? items : [desc]; // если нет маркеров, показываем как один абзац
+                    return items.length ? items : [desc];
                 },
                 getCare(group) {
                     const g = String(group || '').toLowerCase();
